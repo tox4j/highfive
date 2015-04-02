@@ -6,12 +6,12 @@ class IrcClient(object):
     the calls to `time.sleep` are so the socket has time to recognize
     responses from the IRC protocol
     """
-    def __init__(self, target, nick="rust-highfive", should_join=False):
+    def __init__(self, target, nick="tox-highfive", should_join=False):
         self.target = target
         self.nick = nick
         self.should_join = should_join
         self.ircsock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.ircsock.connect(("irc.mozilla.org", 6667))
+        self.ircsock.connect(("irc.freenode.net", 6667))
         self.ircsock.send("USER {0} {0} {0} :alert bot!\r\n".format(self.nick))
         self.ircsock.send("NICK {}\r\n".format(self.nick))
         time.sleep(2)

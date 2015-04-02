@@ -25,12 +25,10 @@ collabo_url = "https://api.github.com/repos/%s/%s/collaborators"
 issue_url = "https://api.github.com/repos/%s/%s/issues/%s"
 
 welcome_with_reviewer = '@%s (or someone else)'
-welcome_without_reviewer = "@nrc or @huonw (NB. this repo may be misconfigured)"
-raw_welcome = """Thanks for the pull request, and welcome! The Rust team is excited to review your changes, and you should hear from %s soon.
+welcome_without_reviewer = "@sonOfRa or @iphydf (NB. this repo may be misconfigured)"
+raw_welcome = """Thanks for the pull request, and welcome! The Tox4j team is excited to review your changes, and you should hear from %s soon.
 
 If any changes to this PR are deemed necessary, please add them as extra commits. This ensures that the reviewer can see what has changed since they last reviewed the code. The way Github handles out-of-date commits, this should also make it reasonably obvious what issues have or haven't been addressed. Large or tricky changes may require several passes of review and changes.
-
-Please see [CONTRIBUTING.md](https://github.com/rust-lang/rust/blob/master/CONTRIBUTING.md) for more information.
 """
 
 
@@ -45,7 +43,7 @@ warning_summary = '<img src="http://www.joshmatthews.net/warning.svg" alt="warni
 unsafe_warning_msg = 'These commits modify **unsafe code**. Please review it carefully!'
 submodule_warning_msg = 'These commits modify **submodules**.'
 
-review_with_reviewer = 'r? @%s\n\n(rust_highfive has picked a reviewer for you, use r? to override)'
+review_with_reviewer = 'r? @%s\n\n(toxbot has picked a reviewer for you, use r? to override)'
 review_without_reviewer = '@%s: no appropriate reviewer found, use r? to override'
 def review_msg(reviewer, submitter):
     if reviewer is None:
@@ -57,8 +55,6 @@ def review_msg(reviewer, submitter):
 reviewer_re = re.compile("[rR]\?[:\- ]*@([a-zA-Z0-9\-]+)")
 unsafe_re = re.compile("\\bunsafe\\b|#!?\\[unsafe_")
 submodule_re = re.compile(".*\+Subproject\scommit\s.*", re.DOTALL|re.MULTILINE)
-
-rustaceans_api_url = "http://www.ncameron.org/rustaceans/user?username={username}"
 
 
 def _load_json_file(name):
@@ -106,7 +102,8 @@ def set_assignee(assignee, owner, repo, issue, user, token, author):
         else:
             raise e
 
-    if assignee:
+    # Disable IRC for now
+    if false and assignee :
         irc_name_of_reviewer = get_irc_nick(assignee)
         if irc_name_of_reviewer:
             client = irc.IrcClient(target="#rust-bots")
@@ -180,9 +177,6 @@ def find_reviewer(commit_msg):
 
 # Choose a reviewer for the PR
 def choose_reviewer(repo, owner, diff, exclude):
-    if not (owner == 'rust-lang' or (owner == 'nrc' and repo == 'highfive')):
-        return 'test_user_selection_ignore_this'
-
     # Get JSON data on reviewers.
     reviewers = _load_json_file(repo + '.json')
     dirs = reviewers.get('dirs', {})
@@ -217,8 +211,6 @@ def choose_reviewer(repo, owner, diff, exclude):
                 cur_dir = line[start:end]
 
                 # A few heuristics to get better reviewers
-                if cur_dir.startswith('librustc'):
-                    cur_dir = 'librustc'
                 if cur_dir == 'test':
                     cur_dir = None
                 if cur_dir and cur_dir not in counts:
@@ -286,15 +278,6 @@ def modifies_submodule(diff):
     return False
 
 def get_irc_nick(gh_name):
-    """ returns None if the request status code is not 200,
-     if the user does not exist on the rustacean database,
-     or if the user has no `irc` field associated with their username
-    """
-    data = urllib2.urlopen(rustaceans_api_url.format(username=gh_name))
-    if data.getcode() == 200:
-        rustacean_data = json.loads(data.read())
-        if rustacean_data:
-            return rustacean_data[0].get("irc")
     return None
 
 
